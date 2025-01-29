@@ -1,12 +1,61 @@
 #! /usr/local/bin/python3
 
-import sys, os, re, getpass, signal, uuid, email, hashlib, argparse, datetime
+import sys, os, re, getpass, signal, argparse, json, time
 
 from imap_tools import MailBox, MailBoxFolderManager, MailBoxTls, MailMessage, AND, UidRange, H
 
 
+class ArchiveGroup:
+    def __init__(self, jsonconfig = None, name = None, dest = None, text_match = None, regex_match = None):
+        if jsonconfig:
+            self.name = jsonconfig['name']
+            self.destination_folder = jsonconfig['destination_folder']
+            self.text_match = [ ]
+            if 'text_match' in jsonconfig['email_match']:
+                self.text_match = jsonconfig['email_match']['text_match']
+            self.regex_match = [ ]
+            if 'regex_match' in jsonconfig['email_match']:
+                for rm in jsonconfig['email_match']['regex_match']:
+                    self.regex_match.append(re.compile(rm))
+        else:
+            self.name = name
+            self.destination_folder = dest
+            self.text_match = text_match
+            self.regex_match = regex_match
+
+    def __repr__(self):
+        return f"ArchiveGroup: '{self.name}', '{self.destination_folder}', {self.text_match}, {self.regex_match}"
+
+archiveGroups = [ ]
+
+
 def ctrlcHandler(sig, frame):
-    print("------------\n\n")
+    print("\n\n------------")
+    summarize()
+    print("------------\n")
+    sys.exit(1)
+
+
+message_group_count = { }
+
+def incrMsgGrp(name):
+    if name in message_group_count:
+        message_group_count[name] += 1
+    else:
+        message_group_count[name] = 1
+
+
+results = [ ]
+message_count = 0
+matches = 0
+
+def summarize():
+    for result in results:
+        print(result)
+    print(f"Messages processed: {message_count}")
+    print(f"Matches found: {matches}")
+    for f in message_group_count:
+        print(f"\t{f}: {message_group_count[f]}")
 
 
 #----------------------------------------------------------------------------
@@ -18,21 +67,47 @@ args = None
 
 def parseArgs():
     parser = argparse.ArgumentParser(description="IMAP4 mail exporter/importer")
-    parser.add_argument("-i", "--imapserver", help="Mail server IP or hostname", required=True)
-    parser.add_argument("-u", "--user", help="Username of mailbox user", required=True)
-    parser.add_argument("-f", "--folder", help="Folder to scan for messages (accepts multiple)", action="append", required=True)
+    parser.add_argument("-j", "--jsonconfig", help="JSON config input file describing multiple search groups")
+    parser.add_argument("-i", "--imapserver", help="Mail server IP or hostname; overrides JSON config if provided")
+    parser.add_argument("-u", "--user", help="Username of mailbox user; overrides JSON config if provided")
+    parser.add_argument("-f", "--folder", help="Folder to scan for messages (accepts multiple)", action="append")
     parser.add_argument("-s", "--sender", help="Sender email address to scan (text match) (accepts multiple)", action="append")
     parser.add_argument("-r", "--senderregex", help="Sender email address to scan (regex match) (accepts multiple)", action="append")
-    parser.add_argument("-t", "--target", help="Target folder messages are moved to", required=True)
+    parser.add_argument("-d", "--destination", help="Destination folder messages are moved to")
 
     global args
     args = parser.parse_args()
 
 parseArgs()
 
-username = args.user
+mailServer = ""
+username = ""
 
-#signal.signal(signal.SIGINT, ctrlcHandler)
+folderNames = [ ]
+
+if args.jsonconfig:
+    with open(args.jsonconfig, 'r') as file:
+        config = json.load(file)
+
+        if config:
+            if 'server' in config:
+                mailServer = config['server']['host']
+                username = config['server']['user']
+            
+            for sf in config['search_folders']:
+                folderNames.append(sf.lower())
+
+            for ag_data in config['archive_groups']:
+                ag = ArchiveGroup(ag_data)
+                archiveGroups.append(ag)
+
+if args.imapserver: # override config file
+    mailServer = args.imapserver
+
+if args.user: # override config file
+    username = args.user
+
+signal.signal(signal.SIGINT, ctrlcHandler)
 
 
 #----------------------------------------------------------------------------
@@ -40,13 +115,7 @@ username = args.user
 # export mail FROM mail server TO database
 #
 
-mailServer = args.imapserver
-
 print(f"EXPORT mail server: {mailServer}, username: {username}")
-
-global message_count
-message_count = 0
-matches = 0
 
 query = AND(all=True)
 """
@@ -60,9 +129,9 @@ else:
     query = AND(all=True)
 """
 
-folderNames = [ ]
-for folder in args.folder:
-    folderNames.append(folder.lower())
+if args.folder:
+    for folder in args.folder:
+        folderNames.append(folder.lower())
 print(f"Scanning folders: {folderNames}")
 
 stringAddrs = [ ]
@@ -78,9 +147,9 @@ if args.senderregex:
         regexAddrs.append(reAddr)
     print(f"Regex address matchers: {len(regexAddrs)}")
 
-targetFolder = args.target
+destFolder = args.destination
 
-results = [ ]
+ag = ArchiveGroup(name="", dest=destFolder, text_match=stringAddrs, regex_match=regexAddrs)
 
 userpass = getpass.getpass()
 with MailBox(mailServer).login(username, userpass) as mailbox:
@@ -94,31 +163,34 @@ with MailBox(mailServer).login(username, userpass) as mailbox:
 
             if msg.from_:
                 found = False
-                for addr in stringAddrs:
-                    if msg.from_.lower() == addr:
-                        print(f"matched {msg.from_}")
-                        found = True
-                        break
-                if not found:
-                    for addr in regexAddrs:
-                        m = addr.match(msg.from_)
-                        if m:
-                            print(f"matched {msg.from_} ({addr.pattern})")
+
+                for ag in archiveGroups:
+                    for addr in ag.text_match:
+                        if msg.from_.lower() == addr:
+                            print(f"matched {msg.from_}")
                             found = True
                             break
-                if found:
-                    print(">>> Found match")
-                    matches += 1
+                    if not found:
+                        for addr in ag.regex_match:
+                            m = addr.match(msg.from_)
+                            if m:
+                                print(f"matched {msg.from_} ({addr.pattern})")
+                                found = True
+                                break
+                    if found:
+                        print(f">>> Found match for {ag.name}")
+                        matches += 1
+                        incrMsgGrp(ag.name)
 
-                    res = mailbox.move(msg.uid, targetFolder)
-                    print(f"Moved message {msg.uid}; result {res}")
+                        res = mailbox.move(msg.uid, ag.destination_folder)
+                        print(f"\aMoved message {msg.uid}; result {res}")
+                        time.sleep(1.0)
 
-                    result = f"{msg.uid} {folderName} {msg.date} {msg.from_} {msg.subject[0:19]}: {res}"
-                    results.append(result)
+                        result = f"{msg.uid} '{folderName}' '{ag.destination_folder}' {msg.date} {msg.from_} '{msg.subject[0:19]}': {res}"
+                        results.append(result)
+
+                        break
 
             message_count += 1
 
-for result in results:
-    print(result)
-print(f"Messages processed: {message_count}")
-print(f"Matches found: {matches}")
+summarize()
