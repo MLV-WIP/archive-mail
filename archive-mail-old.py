@@ -87,16 +87,21 @@ print(f"EXPORT mail server: {mailServer}, username: {username}")
 oldDate = datetime.datetime.now()
 ageSpecified = False
 if args.years:
-    oldDate -= datetime.timedelta(days=(365.24 * args.years))
+    oldDate -= datetime.timedelta(days=(365.24 * int(args.years)))
+    ageSpecified = True
 if args.months:
     oldDate -= datetime.timedelta(days=(30.45 * args.months))
+    ageSpecified = True
 if args.weeks:
     oldDate -= datetime.timedelta(weeks=args.weeks)
+    ageSpecified = True
 if args.days:
     oldDate -= datetime.timedelta(days=args.days)
+    ageSpecified = True
 if not ageSpecified:
     oldDate -= datetime.timedelta(days=365.24)
-    print(f"Defaulting age for archive to one year in the past: {oldDate}")
+    print(f"Defaulting age for archive to one year in the past")
+print(f"Archive emails older than {oldDate}")
 
 query = AND(date_lt=oldDate.date())
 
