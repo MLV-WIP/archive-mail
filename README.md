@@ -151,3 +151,9 @@ pip install imap-tools
 ## Example Template
 
 See `example-template.json` for a sample configuration file with randomized data demonstrating the JSON configuration format.
+
+## Implementation detail
+
+AI (ChatGPT) was used to assist in writing database queries and some python library API calls. The rest of the code was written by hand using iterative development on live servers.
+
+AI (Claude Code) was used to generate the README based on guided prompts and analysis of the code.
