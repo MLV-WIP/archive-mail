@@ -1,0 +1,128 @@
+{
+    "server": {
+        "host": "mailserver",
+        "user": "johndoe@example.com"
+    },
+    "search_folders": [
+        "INBOX",
+        "Archive"
+    ],
+    "archive_groups": [
+        {
+            "name": "Sarah",
+            "destination_folder": "Personal/Special People/Sarah",
+            "email_match": {
+                "text_match": [ "sarahj425@gmail.com", "sarah_s@yahoo.com", "sarah.johnson@att.com" ],
+                "regex_match": [ "(coolsarah|sarah(j)?)@(example.com|testdomain.org|sampledomain.net)" ]
+            }
+        },
+        {
+            "name": "Alex",
+            "destination_folder": "Personal/Special People/Alex",
+            "email_match": {
+                "text_match": [ "alexsmith200@gmail.com", "alex_butterfly@yahoo.com" ],
+                "regex_match": [ "alex@(example.com|testdomain.org)" ]
+            }
+        },
+        {
+            "name": "Emma",
+            "destination_folder": "Personal/Special People/Emma",
+            "email_match": {
+                "text_match": [ "emma.brown@gmail.com", "emma.lee@gmail.com" ],
+                "regex_match": [ "emma@(example.com|testdomain.org)" ]
+            }
+        },
+        {
+            "name": "Ryan",
+            "destination_folder": "Personal/Special People/Micah",
+            "email_match": {
+                "text_match": [ "micahjones@icloud.com", "emma.lee@gmail.com" ],
+                "regex_match": [ "(micah|ryan)@(example.com|testdomain.org)", "(987654|u-[mr]johnson)@school.edu" ]
+            }
+        },
+        {
+            "name": "Jake",
+            "destination_folder": "Personal/Special People/Jake",
+            "email_match": {
+                "text_match": [ "jakeb@live.com" ]
+            }
+        },
+        {
+            "name": "Tom and Linda",
+            "destination_folder": "Personal/Special People/Family/Tom and Linda",
+            "email_match": {
+                "text_match": [ "tomw@netmail.net", "lindaw@netmail.net", "lindaw@aol.com",
+                                "WilliamsTomJ@company.com", "tomlinw@aol.com" ]
+            }
+        },
+        {
+            "name": "Jessica and Mark",
+            "destination_folder": "Personal/Special People/Family/Jessica and Mark",
+            "email_match": {
+                "text_match": [ "jessica.davis@north-valley.k12.ca.us", "mdavis1@internet.com", "jessicadavis@gmail.com",
+                                "jessicadavis@netmail.net", "md10@internet.com", "DavisMarkL@company.com", "DavisJrMarkL@Company.com",
+                                "ethendavis256@gmail.com", "mdavis1@home.com" ]
+            }
+        },
+        {
+            "name": "Chris",
+            "destination_folder": "Personal/Special People/Family/Chris",
+            "email_match": {
+                "text_match": [ "chrisw@netmail.net", "chris-2012@live.com", "csw@att.blackberry.net" ]
+            }
+        },
+        {
+            "name": "Steve and Karen",
+            "destination_folder": "Personal/Special People/Family/Steve and Karen",
+            "email_match": {
+                "text_match": [ "stevesmith@church.org", "karensmith@church.org", "steve.smith@me.com",
+                                "ksmith@organization.org", "smith.drew@gmail.com", "karenfun@gmail.com",
+                                "karen@assembly.net", "HeyheyKaK@aol.com" ]
+            }
+        },
+        {
+            "name": "Robert and Mary",
+            "destination_folder": "Personal/Special People/Family/Robert and Mary",
+            "email_match": {
+                "text_match": [ "robert1@netmail.net", "mary@netmail.net" ]
+            }
+        },
+        {
+            "name": "Family",
+            "destination_folder": "Personal/Special People/Family",
+            "email_match": {
+                "text_match": [ "family_488@msn.com", "familywork@gmail.com", "", "grandma@netmail.net", "goldma@aol.com",
+                                "tina_wilson@yahoo.com", "t_is_cool@yahoo.com", "photos4u@hotmail.com" ]
+            }
+        },
+        {
+            "name": "Brian and Susan",
+            "destination_folder": "Personal/Special People/Family/Brian and Susan",
+            "email_match": {
+                "text_match": [ "bsechoes3@aol.com", "echoes48@gmail.com", "captbso@gmail.com" ]
+            }
+        },
+        {
+            "name": "Mike and Carol",
+            "destination_folder": "Personal/Special People/Friends/Mike and Carol",
+            "email_match": {
+                "text_match": [ "mkelly@internetprovider.net" ]
+            }
+        },
+        {
+            "name": "Ashley",
+            "destination_folder": "Personal/Special People/Friends/Ashley",
+            "email_match": {
+                "text_match": [ "ashleytaylor@yahoo.com", "ashleytaylor@gmail.com" ],
+                "regex_match": [ "ashley@(example.com|testdomain.org|sampledomain.net)" ]
+            }
+        },
+        {
+            "name": "Neighbors",
+            "destination_folder": "Personal/Special People/Neighbors",
+            "email_match": {
+                "text_match": [ "jksmith@comcast.net", "neighbor@comcast.net", "a.jones@company.com", "jbneighbor@comcast.net" ]
+            }
+        }
+    ]
+}
