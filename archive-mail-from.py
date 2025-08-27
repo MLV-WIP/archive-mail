@@ -1,4 +1,4 @@
-#! /usr/local/bin/python3
+#! /usr/bin/python3
 
 import sys, os, re, getpass, signal, argparse, json, time
 
@@ -95,7 +95,8 @@ if args.jsonconfig:
                 username = config['server']['user']
             
             for sf in config['search_folders']:
-                folderNames.append(sf.lower())
+                #folderNames.append(sf.lower())
+                folderNames.append(sf)
 
             for ag_data in config['archive_groups']:
                 ag = ArchiveGroup(ag_data)
